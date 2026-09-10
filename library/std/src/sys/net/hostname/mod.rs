@@ -8,6 +8,10 @@ cfg_select! {
         mod windows;
         pub use windows::hostname;
     }
+    target_os = "popugos" => {
+        mod popugos;
+        pub use popugos::hostname;
+    }
     _ => {
         mod unsupported;
         pub use unsupported::hostname;

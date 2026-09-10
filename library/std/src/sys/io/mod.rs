@@ -20,6 +20,10 @@ mod is_terminal {
             mod motor;
             pub use motor::*;
         }
+        target_os = "popugos" => {
+            mod popugos;
+            pub use popugos::*;
+        }
         _ => {
             mod unsupported;
             pub use unsupported::*;

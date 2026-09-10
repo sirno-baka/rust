@@ -21,6 +21,10 @@ cfg_select! {
             };
         }
     }
+    target_os = "popugos" => {
+        mod popugos;
+        use popugos as imp;
+    }
     all(target_vendor = "fortanix", target_env = "sgx") => {
         mod sgx;
         #[expect(dead_code)]

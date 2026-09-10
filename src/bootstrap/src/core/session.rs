@@ -666,8 +666,8 @@ impl Session {
             features.insert("profiler");
         }
 
-        // If zkvm target, generate memcpy, etc.
-        if target.contains("zkvm") {
+        // These targets do not have a C runtime providing memcpy, etc.
+        if target.contains("zkvm") || target.contains("popugos") {
             features.insert("compiler-builtins-mem");
         }
 

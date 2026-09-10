@@ -61,6 +61,10 @@ cfg_select! {
         mod motor;
         pub use motor::fill_bytes;
     }
+    target_os = "popugos" => {
+        mod popugos;
+        pub use popugos::{fill_bytes, hashmap_random_keys};
+    }
     all(target_vendor = "fortanix", target_env = "sgx") => {
         mod sgx;
         pub use sgx::fill_bytes;
@@ -102,7 +106,6 @@ cfg_select! {
         target_os = "xous",
         target_os = "vexos",
         target_os = "l4re",
-        target_os = "popugos",
     ) => {
         // FIXME: finally remove std support for wasm32-unknown-unknown
         // FIXME: add random data generation to xous
