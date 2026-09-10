@@ -10,6 +10,15 @@ cfg_select! {
         mod motor;
         pub use motor::*;
     }
+    target_os = "popugos" => {
+        mod popugos;
+        pub use popugos::{sleep, yield_now};
+        #[expect(dead_code)]
+        mod unsupported;
+        pub use unsupported::{
+            DEFAULT_MIN_STACK_SIZE, Thread, available_parallelism, current_os_id, set_name,
+        };
+    }
     all(target_vendor = "fortanix", target_env = "sgx") => {
         mod sgx;
         pub use sgx::{DEFAULT_MIN_STACK_SIZE, Thread, current_os_id, sleep, yield_now};

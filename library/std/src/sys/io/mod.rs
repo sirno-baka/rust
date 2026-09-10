@@ -49,6 +49,7 @@ pub use error::errno_location;
         ))
     ),
     target_os = "wasi",
+    target_os = "popugos",
 ))]
 pub use error::set_errno;
 pub use error::{decode_error_kind, errno, format_error, is_interrupted};

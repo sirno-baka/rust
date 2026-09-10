@@ -24,6 +24,10 @@ cfg_select! {
         mod motor;
         pub use self::motor::*;
     }
+    target_os = "popugos" => {
+        mod popugos;
+        pub use self::popugos::*;
+    }
     target_os = "trusty" => {
         mod trusty;
         pub use self::trusty::*;

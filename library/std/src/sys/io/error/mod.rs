@@ -7,6 +7,10 @@ cfg_select! {
         mod motor;
         pub use motor::*;
     }
+    target_os = "popugos" => {
+        mod popugos;
+        pub use popugos::*;
+    }
     all(target_vendor = "fortanix", target_env = "sgx") => {
         mod sgx;
         pub use sgx::*;

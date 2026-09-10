@@ -10,6 +10,7 @@
     target_os = "uefi",
     target_os = "wasi",
     target_os = "xous",
+    target_os = "popugos",
 ))]
 mod common;
 
@@ -39,6 +40,10 @@ cfg_select! {
     target_os = "motor" => {
         mod motor;
         pub use motor::*;
+    }
+    target_os = "popugos" => {
+        mod popugos;
+        pub use popugos::*;
     }
     target_os = "uefi" => {
         mod uefi;

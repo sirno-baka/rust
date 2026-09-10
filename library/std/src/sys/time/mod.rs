@@ -2,6 +2,10 @@ cfg_select! {
     target_os = "motor" => {
         use moto_rt::time as imp;
     }
+    target_os = "popugos" => {
+        mod popugos;
+        use popugos as imp;
+    }
     all(target_vendor = "fortanix", target_env = "sgx") => {
         mod sgx;
         use sgx as imp;

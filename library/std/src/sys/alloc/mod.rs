@@ -80,6 +80,10 @@ cfg_select! {
         mod motor;
         use motor as imp;
     }
+    target_os = "popugos" => {
+        mod popugos;
+        use popugos as imp;
+    }
     all(target_vendor = "fortanix", target_env = "sgx") => {
         mod sgx;
         use sgx as imp;
