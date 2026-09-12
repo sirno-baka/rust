@@ -76,6 +76,9 @@ cfg_select! {
     doc
 ))]
 pub mod fd;
+#[cfg(target_os = "popugos")]
+#[path = "popugos/io.rs"]
+pub mod fd;
 
 #[cfg(any(target_os = "linux", target_os = "android", target_os = "cygwin", doc))]
 mod net;
@@ -127,6 +130,8 @@ pub mod nto;
 pub mod nuttx;
 #[cfg(target_os = "openbsd")]
 pub mod openbsd;
+#[cfg(target_os = "popugos")]
+pub mod popugos;
 #[cfg(target_os = "redox")]
 pub mod redox;
 #[cfg(target_os = "rtems")]
