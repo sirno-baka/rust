@@ -24,11 +24,14 @@ pub const SYS_DUP2: u32 = 63;
 pub const SYS_MMAP: u32 = 90;
 pub const SYS_MUNMAP: u32 = 91;
 pub const SYS_NANOSLEEP: u32 = 162;
+pub const SYS_SCHED_YIELD: u32 = 158;
 pub const SYS_POLL: u32 = 168;
 pub const SYS_GETCWD: u32 = 183;
 pub const SYS_STAT64: u32 = 195;
 pub const SYS_FSTAT64: u32 = 197;
 pub const SYS_GETDENTS64: u32 = 220;
+pub const SYS_GETTID: u32 = 224;
+pub const SYS_FUTEX: u32 = 240;
 pub const SYS_CLOCK_GETTIME: u32 = 265;
 pub const SYS_GETRANDOM: u32 = 355;
 pub const SYS_SOCKET: u32 = 359;
@@ -42,6 +45,13 @@ pub const SYS_SENDTO: u32 = 369;
 pub const SYS_RECVFROM: u32 = 371;
 pub const SYS_SHUTDOWN: u32 = 373;
 pub const SYS_SPAWN: u32 = 0xF000;
+pub const SYS_SPAWN_PATH: u32 = 0xF002;
+pub const SYS_THREAD_CREATE: u32 = 0xF020;
+pub const SYS_THREAD_EXIT: u32 = 0xF021;
+pub const SYS_THREAD_JOIN: u32 = 0xF022;
+pub const SYS_THREAD_DETACH: u32 = 0xF023;
+pub const SYS_TLS_GET: u32 = 0xF024;
+pub const SYS_TLS_SET: u32 = 0xF025;
 pub const SYS_IFCONFIG: u32 = 0xF111;
 
 pub const F_GETFL: u32 = 3;
@@ -266,6 +276,28 @@ pub unsafe fn nanosleep(request: *const Timespec, remaining: *mut Timespec) -> i
     unsafe { syscall2(SYS_NANOSLEEP, request.addr() as u32, remaining.addr() as u32) }
 }
 
+/// Linux-i386-compatible futex(uaddr, op, val, timeout) subset used by Felix.
+/// ESI is reserved by LLVM on this 32-bit target, so preserve it manually and
+/// copy the fourth argument from EDI instead of declaring an `in("esi")`
+/// operand.
+pub unsafe fn futex(uaddr: *mut u32, op: u32, val: u32, timeout: *const Timespec) -> i32 {
+    let result: i32;
+    unsafe {
+        asm!(
+            "push esi",
+            "mov esi, edi",
+            "int 0x80",
+            "pop esi",
+            inlateout("eax") SYS_FUTEX => result,
+            in("ebx") uaddr.addr() as u32,
+            in("ecx") op,
+            in("edx") val,
+            in("edi") timeout.addr() as u32,
+        );
+    }
+    result
+}
+
 pub unsafe fn poll(fds: *mut PollFd, nfds: usize, timeout_ms: i32) -> i32 {
     unsafe { syscall3(SYS_POLL, fds.addr() as u32, nfds as u32, timeout_ms as u32) }
 }
@@ -298,6 +330,45 @@ pub unsafe fn getpid() -> i32 {
     unsafe { syscall0(SYS_GETPID) }
 }
 
+pub unsafe fn gettid() -> i32 {
+    unsafe { syscall0(SYS_GETTID) }
+}
+
+pub unsafe fn sched_yield() -> i32 {
+    unsafe { syscall0(SYS_SCHED_YIELD) }
+}
+
+pub unsafe fn thread_create(entry: extern "C" fn(*mut u8) -> !, arg: *mut u8) -> i32 {
+    unsafe { syscall2(SYS_THREAD_CREATE, entry as usize as u32, arg.addr() as u32) }
+}
+
+pub unsafe fn thread_exit(value: u32) -> ! {
+    unsafe {
+        asm!(
+            "int 0x80",
+            in("eax") SYS_THREAD_EXIT,
+            in("ebx") value,
+            options(noreturn)
+        );
+    }
+}
+
+pub unsafe fn thread_join(tid: i32) -> i32 {
+    unsafe { syscall2(SYS_THREAD_JOIN, tid as u32, 0) }
+}
+
+pub unsafe fn thread_detach(tid: i32) -> i32 {
+    unsafe { syscall1(SYS_THREAD_DETACH, tid as u32) }
+}
+
+pub unsafe fn tls_get() -> *mut u8 {
+    unsafe { core::ptr::with_exposed_provenance_mut(syscall0(SYS_TLS_GET) as u32 as usize) }
+}
+
+pub unsafe fn tls_set(value: *mut u8) -> i32 {
+    unsafe { syscall1(SYS_TLS_SET, value.addr() as u32) }
+}
+
 pub unsafe fn kill(pid: i32, signal: i32) -> i32 {
     unsafe { syscall2(SYS_KILL, pid as u32, signal as u32) }
 }
@@ -313,6 +384,18 @@ pub unsafe fn spawn(image: *const u8, len: usize, params: *const ExecParams) -> 
             SYS_SPAWN,
             image.addr() as u32,
             len as u32,
+            params.addr() as u32,
+        )
+    }
+}
+
+/// Felix-private spawn ABI: a NUL-terminated VFS path and ExecParams.
+pub unsafe fn spawn_path(path: *const u8, params: *const ExecParams) -> i32 {
+    unsafe {
+        syscall3(
+            SYS_SPAWN_PATH,
+            path.addr() as u32,
+            0,
             params.addr() as u32,
         )
     }

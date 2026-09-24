@@ -19,6 +19,10 @@ cfg_select! {
         mod hermit;
         pub use hermit::*;
     }
+    target_os = "popugos" => {
+        mod popugos;
+        pub use popugos::*;
+    }
     // The wasi-libc based futex is new enough that it's not present in older
     // wasi-libc builds. For now that means it's only required on wasip3 (which
     // requires a newer wasi-libc anyway). In the future this'll probably switch to

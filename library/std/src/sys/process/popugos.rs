@@ -155,7 +155,7 @@ impl Command {
     fn spawn_inner(&self, child_fds: [i32; 3]) -> io::Result<i32> {
         let environment = self.env.capture();
         let resolved_program = resolve_program(&self.program, &environment);
-        let image = crate::fs::read(&resolved_program)?;
+        let executable_path = make_c_string(resolved_program.as_os_str())?;
 
         let mut arg_storage = Vec::<Vec<u8>>::with_capacity(self.args.len() + 1);
         // argv[0] remains exactly what the caller passed to Command::new; only
@@ -201,7 +201,7 @@ impl Command {
             pgid: -1,
             foreground: 0,
         };
-        cvt(unsafe { abi::spawn(image.as_ptr(), image.len(), &params) })
+        cvt(unsafe { abi::spawn_path(executable_path.as_ptr(), &params) })
     }
 }
 

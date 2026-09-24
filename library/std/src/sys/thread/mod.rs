@@ -12,10 +12,7 @@ cfg_select! {
     }
     target_os = "popugos" => {
         mod popugos;
-        pub use popugos::{available_parallelism, current_os_id, set_name, sleep, yield_now};
-        #[expect(dead_code)]
-        mod unsupported;
-        pub use unsupported::{DEFAULT_MIN_STACK_SIZE, Thread};
+        pub use popugos::*;
     }
     all(target_vendor = "fortanix", target_env = "sgx") => {
         mod sgx;

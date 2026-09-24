@@ -40,7 +40,6 @@ cfg_select! {
         target_os = "zkvm",
         target_os = "trusty",
         target_os = "vexos",
-        target_os = "popugos",
     ) => {
         mod no_threads;
         pub use no_threads::{EagerStorage, LazyStorage, thread_local_inner};
@@ -112,7 +111,6 @@ pub(crate) mod guard {
             target_os = "zkvm",
             target_os = "trusty",
             target_os = "vexos",
-            target_os = "popugos",
         ) => {
             pub(crate) fn enable() {
                 // FIXME: Right now there is no concept of "thread exit" on
@@ -128,7 +126,7 @@ pub(crate) mod guard {
                 use crate::rt::thread_cleanup;
             }
         }
-        any(target_os = "hermit", target_os = "xous") => {
+        any(target_os = "hermit", target_os = "xous", target_os = "popugos") => {
             // `std` is the only runtime, so it just calls the destructor functions
             // itself when the time comes.
             pub(crate) fn enable() {}
@@ -192,6 +190,16 @@ pub(crate) mod key {
             pub(crate) use xous::destroy_tls;
             pub(super) use xous::{Key, get, set};
             use xous::{create, destroy};
+        }
+        target_os = "popugos" => {
+            mod racy;
+            #[cfg(test)]
+            mod tests;
+            mod popugos;
+            pub(super) use racy::LazyKey;
+            pub(crate) use popugos::destroy_tls;
+            pub(super) use popugos::{Key, get, set};
+            use popugos::{create, destroy};
         }
         target_os = "motor" => {
             mod racy;
